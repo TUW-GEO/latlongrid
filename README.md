@@ -1,2 +1,2 @@
-# LatLonGrid
+# latlongrid
 Global geographical grid system
