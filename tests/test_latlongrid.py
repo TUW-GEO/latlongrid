@@ -30,6 +30,14 @@ from pytileproj.geometry import setup_test_geom_spitzbergen
 from pytileproj.geometry import setup_geom_kamchatka
 
 
+def assert_tuples(tuple_1, tuple_2):
+    for i in range(len(tuple_1)):
+        if type(tuple_1[i]) == float:
+            nptest.assert_allclose(tuple_1[i], tuple_2[i])
+        else:
+            assert tuple_1[i] == tuple_2[i]
+
+
 class TestLatLonGrid(unittest.TestCase):
 
     def test_ij2xy(self):
@@ -63,10 +71,10 @@ class TestLatLonGrid(unittest.TestCase):
         latlon_grid_coarse = LatLonGrid(0.01)
         latlon_grid_fine = LatLonGrid(0.0001)
 
-        assert nptest.assert_allclose(latlon_grid_coarse.GL.tilesys.decode_tilename('GL010M_E072N036T18'),
-                                      ('GL', 0.01, 18, -108, -54, 'T18'))
-        assert nptest.assert_allclose(latlon_grid_fine.GL.tilesys.decode_tilename('GL100U_E194N135T1'),
-                                      ('GL', 0.0001, 1, 14, 45, 'T1'))
+        assert_tuples(latlon_grid_coarse.GL.tilesys.decode_tilename('GL010M_E072N036T18'),
+                             ('GL', 0.01, 18, -108, -54, 'T18'))
+        assert_tuples(latlon_grid_fine.GL.tilesys.decode_tilename('GL100U_E194N135T1'),
+                             ('GL', 0.0001, 1, 14, 45, 'T1'))
 
         with nptest.assert_raises(ValueError) as excinfo:
             latlon_grid_fine.GL.tilesys.decode_tilename('E018N018T18')
@@ -133,15 +141,15 @@ class TestLatLonGrid(unittest.TestCase):
         grid = LatLonGrid(0.01)
 
         spitzbergen_geom = setup_test_geom_spitzbergen()
-        spitzbergen_geom_tiles = sorted(['GL010M_E180N162T6', 'GL010M_E198N162T6',
-                                         'GL010M_E216N162T6'])
+        spitzbergen_geom_tiles = sorted(['GL010M_E180N162T18', 'GL010M_E198N162T18',
+                                         'GL010M_E216N162T18'])
         tiles = sorted(grid.search_tiles_in_roi(spitzbergen_geom,
                                                 coverland=False))
 
         assert sorted(tiles) == sorted(spitzbergen_geom_tiles)
 
-        spitzbergen_geom_tiles = sorted(['GL010M_E180N162T6', 'GL010M_E198N162T6',
-                                         'GL010M_E216N162T6'])
+        spitzbergen_geom_tiles = sorted(['GL010M_E180N162T18', 'GL010M_E198N162T18',
+                                         'GL010M_E216N162T18'])
         tiles = sorted(grid.search_tiles_in_roi(spitzbergen_geom,
                                                 coverland=True))
 
@@ -214,6 +222,7 @@ class TestLatLonGrid(unittest.TestCase):
 
         assert sorted(coarse_tiles_shortform) == ['E174N084T6', 'E180N084T6']
         assert sorted(coarse_tiles_longform) == ['GL600U_E174N084T6', 'GL600U_E180N084T6']
+
 
 
 if __name__ == '__main__':

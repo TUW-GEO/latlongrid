@@ -552,7 +552,7 @@ class LatLonTilingSystem(TilingSystem):
             shortform of the tilename
         """
         self.check_tilename(longform)
-        if len(longform) == 17:
+        if len(longform) in [17, 18]:
             shortform = longform[7:]
         return shortform
 
