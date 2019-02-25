@@ -30,7 +30,7 @@
 
 
 '''
-Created on July 10, 2018
+Created on February 25, 2018
 make latlongrid.dat file for LatLonGrid class
 @author: Claudio Navacchi, claudio.navacchi@geo.tuwien.ac.at
 '''
@@ -38,9 +38,9 @@ make latlongrid.dat file for LatLonGrid class
 import os
 import argparse
 import pickle
-from osgeo import ogr, osr
+from osgeo import ogr
 
-#TODO: add true coverland flags
+
 def make_latlondata(out_dirpath, version="V1"):
     """ Make the latlongrid.dat file
     Parameters
@@ -143,9 +143,9 @@ def load_coverland_tiles(tile_fpath):
         coversland = f.GetField("COVERSLAND")
         if coversland:
             extent = int(f.GetField("EXTENT"))
-            east = int(f.GetField("EASTINGLL"))
-            north = int(f.GetField("NORTHINGLL"))
-            tilename = "E{:03d}N{:03d}T{}".format(east + 180, north + 90, extent)
+            ll_lon = int(f.GetField("LLLON"))
+            ll_lat = int(f.GetField("LLLAT"))
+            tilename = "E{:03d}N{:03d}T{}".format(ll_lon + 180, ll_lat + 90, extent)
             tiles_coversland.append(tilename)
 
     return tiles_coversland
@@ -166,7 +166,7 @@ def main():
     args = parser.parse_args()
 
     outpath = os.path.abspath(args.outpath)
-    version = args.version[0] if args.version else "V13"
+    version = args.version[0] if args.version else "V1"
     return make_latlondata(outpath, version)
 
 

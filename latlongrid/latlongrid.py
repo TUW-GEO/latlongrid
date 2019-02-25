@@ -1,4 +1,4 @@
-# Copyright (c) 2017, Vienna University of Technology (TU Wien), Department of
+# Copyright (c) 2018, Vienna University of Technology (TU Wien), Department of
 # Geodesy and Geoinformation (GEO).
 # All rights reserved.
 #
@@ -62,7 +62,7 @@ def _load_static_data(module_path):
         dictionary containing for each subgrid...
             a) the multipolygon 'zone_extent'
             b) the WKT-string 'projection'
-            c) the sets for T6/T3/T1-tiles covering land 'coverland'
+            c) the sets for T18/T6/T3/T1-tiles covering land 'coverland'
             d) the LatLonGrid version 'version'
     """
     latlon_data = None
@@ -98,22 +98,22 @@ class LatLonGrid(TiledProjectionSystem):
     _static_subgrid_ids = ["GL"]
     # supported tile widths (linked to the grid sampling)
     _static_tilecodes = ["T1", "T3", "T6", "T18"]
-    # supported grid spacing ( = the pixel sampling)
+    # supported grid spacing ( = the pixel sampling), in degree
     _static_sampling = [0.0001, 0.00016, 0.0002, 0.0003, 0.0004, 0.0005, 0.0006,
                         0.0008, 0.001, 0.0016, 0.002, 0.003, 0.004, 0.005, 0.006,
                         0.008, 0.01]
 
     def __init__(self, sampling):
         """
-        Initialises an Equi7Grid class for a specified sampling.
+        Initialises an LatLonGrid class for a specified sampling.
         Parameters
         ----------
         sampling : float
-            the grid sampling = size of pixels; in metres.
+            the grid sampling = size of pixels; in degree.
         """
         # check if the equi7grid.data have been loaded successfully
         if LatLonGrid._static_data is None:
-            raise ValueError("cannot load LatLonGrid ancillary data!")
+            raise ValueError("Cannot load LatLonGrid ancillary data!")
         # check if sampling is allowed
         if sampling not in LatLonGrid._static_sampling:
             raise ValueError("Sampling {}° is not supported!".format(sampling))
@@ -156,7 +156,7 @@ class LatLonGrid(TiledProjectionSystem):
     def decode_sampling(sampling_str):
         """
         converts the string representing the sampling (e.g. from the tilenames)
-        to an integer value in metres
+        to an integer value in degree
 
         Parameters
         ----------
@@ -165,7 +165,7 @@ class LatLonGrid(TiledProjectionSystem):
         Returns
         -------
         sampling : int
-            the grid sampling = size of pixels; in metres.
+            the grid sampling = size of pixels; in degree.
 
         """
         if len(sampling_str) != 4:
@@ -195,14 +195,13 @@ class LatLonGrid(TiledProjectionSystem):
             subgrids[sg] = LatLonSubgrid(self.core, sg)
         return subgrids
 
-    #TODO
     def get_tiletype(self, sampling=None):
         """
         Returns the tilecode defined for the grid's sampling
         Parameters
         ----------
         sampling : int, optional
-            the grid sampling = size of pixels; in metres.
+            the grid sampling = size of pixels; in degree.
         Returns
         -------
         tilecode : str
@@ -233,11 +232,11 @@ class LatLonGrid(TiledProjectionSystem):
 
     def get_tilesize(self, sampling):
         """
-        Return the tile size in metres defined for the grid's sampling
+        Return the tile size in degree defined for the grid's sampling
         Parameters
         ----------
         sampling : int
-            the grid sampling = size of pixels; in metres.
+            the grid sampling = size of pixels; in degree.
         Returns
         -------
         xsize, ysize : int
@@ -271,13 +270,13 @@ class LatLonSubgrid(TiledProjection):
 
     def __init__(self, core, region):
         """
-        Initialises an Equi7Subgrid class for a specified continent.
+        Initialises an LatLonSubgrid class for a specified continent.
         Parameters
         ----------
         core : TPSCoreProperty
             defines core parameters of the (sub-) grid
         region : str
-            acronym of the continent, e.g. 'EU' or 'SA'.
+            acronym of the continent, e.g. 'GL'.
         """
 
         # load WKT string and extent shape
@@ -374,13 +373,13 @@ class LatLonSubgrid(TiledProjection):
 
 class LatLonTilingSystem(TilingSystem):
     """
-    Equi7TilingSystem class, inheriting TilingSystem() from pytileproj.
+    LatLonTilingSystem class, inheriting TilingSystem() from pytileproj.
     provides methods for queries and handling.
     """
 
     def __init__(self, core, polygon_geog):
         """
-        Initialises an Equi7TilingSystem class for a specified continent.
+        Initialises an LatLonTilingSystem class for a specified continent.
         Parameters
         ----------
         core : TPSCoreProperty
@@ -402,7 +401,7 @@ class LatLonTilingSystem(TilingSystem):
     def round_lonlat2lowerleft(self, lon, lat):
         """
         Returns the lower-left coordinates of the tile in which the point,
-        defined by x and y coordinates (in metres), is located.
+        defined by lon and lat coordinates (in degree), is located.
 
         Parameters
         ----------
@@ -425,24 +424,24 @@ class LatLonTilingSystem(TilingSystem):
 
     def create_tile(self, name=None, lon=None, lat=None):
         """
-        Returns a Equi7Tile object
+        Returns a LatLonTile object
         Parameters
         ----------
         name : str
-            name of the tile; e.g EU500M_E012N018T6 or E012N018T6
+            name of the tile; e.g GL600U_E012N018T6 or E012N018T6
         lon : float
-            x (right) coordinate of a pixel located in the desired tile
-            must to given together with y
+            lon (right) coordinate of a pixel located in the desired tile
+            must to given together with lat
         lat : float
-            y (up) coordinate of a pixel located in the desired tile
-            must to given together with x
+            lat (up) coordinate of a pixel located in the desired tile
+            must to given together with lon
         Returns
         -------
         LatLonTile
             object containing info of the specified tile
         Notes
         -----
-        either name, or x and y, must be given.
+        either name, or lon and lat, must be given.
         """
 
         # use the x and y coordinates for specifing the tile
@@ -464,8 +463,8 @@ class LatLonTilingSystem(TilingSystem):
 
     def point2tilename(self, lon, lat, shortform=False):
         """
-        Returns the name string of an Equi7Tile in which the point,
-        defined by x and y coordinates (in metres), is located.
+        Returns the name string of an LatLonTile in which the point,
+        defined by lon and lat coordinates (in degree), is located.
         Parameters
         ----------
         lon : float
@@ -480,7 +479,7 @@ class LatLonTilingSystem(TilingSystem):
         Returns
         -------
         str
-            the tilename in longform e.g. 'EU500M_E012N018T6'
+            the tilename in longform e.g. 'GL600U_E012N018T6'
             or in shortform e.g. 'E012N018T6'.
         """
         ll_lon, ll_lat = self.round_lonlat2lowerleft(lon, lat)
@@ -662,6 +661,44 @@ class LatLonTilingSystem(TilingSystem):
 
         return subgrid_id, sampling, tile_size_d, ll_lon, ll_lat, tilecode
 
+    def identify_tiles_overlapping_lonlatbbox(self, bbox):
+        """Light-weight routine that returns
+           the name of tiles overlapping the bounding box.
+
+        Parameters
+        ----------
+        bbox : list
+            list of geographical coordinates limiting the bounding box.
+            scheme: [lon_min, lat_min, lon_max, lat_max]
+
+        Return
+        ------
+        tilenames : list
+            list of tilenames overlapping the bounding box
+        """
+
+        lon_min, lat_min, lon_max, lat_max = bbox
+        if (lon_min >= lon_max) or (lat_min >= lat_max):
+            raise ValueError("Check order of coordinates of bbox! "
+                             "Scheme: [lon_min, lat_min, lon_max, lat_max]")
+
+        tsize_lon = self.core.tile_xsize_m
+        tsize_lat = self.core.tile_ysize_m
+
+        # 0.9 < than lowest tile size (1°)
+        ll_lons = np.arange(lon_min // tsize_lon * tsize_lon, lon_max // tsize_lon * tsize_lon + 0.9, tsize_lon)
+        ll_lats = np.arange(lat_min // tsize_lat * tsize_lat, lat_max // tsize_lat * tsize_lat + 0.9, tsize_lat)
+        tlon, tlat = np.meshgrid(ll_lons, ll_lats)
+        tlon = tlon.flatten()
+        tlat = tlat.flatten()
+
+        tilenames = list()
+        for i, _ in enumerate(tlon):
+            tilenames.append(
+                self._encode_tilename(tlon[i], tlat[i]))
+
+        return tilenames
+
     def find_overlapping_tilenames(self, tilename,
                                    target_sampling=None,
                                    target_tiletype=None):
@@ -705,7 +742,7 @@ class LatLonTilingSystem(TilingSystem):
                 sampling = 0.0003
             elif target_tiletype == 'T6':
                 sampling = 0.0006
-            elif target_tiletype == 'T6':
+            elif target_tiletype == 'T18':
                 sampling = 0.002
             else:
                 raise ValueError(self.msg3)
@@ -756,7 +793,7 @@ class LatLonTilingSystem(TilingSystem):
         Parameters
         ----------
         tilename : str
-            the tilename in longform e.g. 'EU500M_E012N018T6'
+            the tilename in longform e.g. 'GL600U_E012N018T6'
         Returns
         -------
         Boolean

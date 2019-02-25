@@ -16,14 +16,11 @@
 
 
 """
-Tests for the Equi7Grid().
+Tests for the LatLonGrid().
 """
 
 import unittest
-import numpy as np
 import numpy.testing as nptest
-from osgeo import osr
-import pyproj
 
 from latlongrid.latlongrid import LatLonGrid
 from pytileproj.geometry import setup_test_geom_spitzbergen
@@ -42,7 +39,7 @@ class TestLatLonGrid(unittest.TestCase):
 
     def test_ij2xy(self):
         """
-        Tests tile indices to xy coordination in the subgrid projection
+        Tests tile indices to lonlat coordination in the subgrid projection
         """
         latlon_grid = LatLonGrid(0.0001)
         lon_should = -71.9667
@@ -54,7 +51,7 @@ class TestLatLonGrid(unittest.TestCase):
 
     def test_xy2ij(self):
         """
-        Tests xy to tile array indices.
+        Tests lonlat to tile array indices.
         """
         latlon_grid = LatLonGrid(0.0001)
         column_should = 333
@@ -114,7 +111,7 @@ class TestLatLonGrid(unittest.TestCase):
         desired_tiles = ["GL600U_E180N120T6", "GL600U_E186N120T6",
                          "GL600U_E180N126T6", "GL600U_E186N126T6"]
 
-        assert len(tiles_all) == 1800
+        assert len(tiles_all) == 995
         assert sorted(tiles) == sorted(desired_tiles)
 
     def test_search_tiles_lon_lat_extent_by_points(self):
@@ -131,25 +128,27 @@ class TestLatLonGrid(unittest.TestCase):
 
         assert sorted(tiles) == sorted(desired_tiles)
 
-    # TODO: adapt when coverland flag is set
     def test_search_tiles_spitzbergen(self):
         """
         Tests the tile searching over Spitzbergen in the polar zone; ROI defined
         by a 4-corner polygon over high latitudes (is much curved on the globe).
         """
 
-        grid = LatLonGrid(0.01)
+        grid = LatLonGrid(0.0006)
 
         spitzbergen_geom = setup_test_geom_spitzbergen()
-        spitzbergen_geom_tiles = sorted(['GL010M_E180N162T18', 'GL010M_E198N162T18',
-                                         'GL010M_E216N162T18'])
+        spitzbergen_geom_tiles = sorted(['GL600U_E186N162T6', 'GL600U_E192N162T6', 'GL600U_E198N162T6',
+                                         'GL600U_E204N162T6', 'GL600U_E210N162T6', 'GL600U_E186N168T6',
+                                         'GL600U_E192N168T6', 'GL600U_E198N168T6', 'GL600U_E204N168T6',
+                                         'GL600U_E210N168T6', 'GL600U_E216N168T6'])
         tiles = sorted(grid.search_tiles_in_roi(spitzbergen_geom,
                                                 coverland=False))
 
         assert sorted(tiles) == sorted(spitzbergen_geom_tiles)
 
-        spitzbergen_geom_tiles = sorted(['GL010M_E180N162T18', 'GL010M_E198N162T18',
-                                         'GL010M_E216N162T18'])
+        spitzbergen_geom_tiles = sorted(['GL600U_E192N162T6', 'GL600U_E198N162T6', 'GL600U_E204N162T6',
+                                         'GL600U_E186N168T6', 'GL600U_E192N168T6', 'GL600U_E198N168T6',
+                                         'GL600U_E204N168T6', 'GL600U_E210N168T6'])
         tiles = sorted(grid.search_tiles_in_roi(spitzbergen_geom,
                                                 coverland=True))
 
@@ -175,11 +174,10 @@ class TestLatLonGrid(unittest.TestCase):
 
         assert sorted(tiles) == sorted(kamchatka_geom_tiles)
 
-    # TODO: base class pytileproj should handle float values as bbox
     def test_identify_tiles_overlapping_xybbox(self):
         """
         Tests identification of tiles covering a bounding box
-        given in equi7 coordinats
+        given in lonlat coordinats
         """
 
         latlon_grid_coarse = LatLonGrid(0.01)
@@ -188,15 +186,15 @@ class TestLatLonGrid(unittest.TestCase):
         tiles1_should = ["GL010M_E180N090T18", "GL010M_E180N108T18",
                          "GL010M_E180N126T18"]
 
-        tiles2_should = ["GL600U_E186N132T6", "GL600U_E138NT6",
-                         "GL600U_E192N132T6", "GL600U_E138NT6"]
+        tiles2_should = ["GL600U_E186N132T6", "GL600U_E186N138T6",
+                         "GL600U_E192N132T6", "GL600U_E192N138T6"]
 
-        tiles1 = latlon_grid_coarse.GL.tilesys.identify_tiles_overlapping_xybbox([0, 0, 10, 40])
+        tiles1 = latlon_grid_coarse.GL.tilesys.identify_tiles_overlapping_lonlatbbox([0, 0, 10, 40])
 
-        #tiles2 = latlon_grid_fine.GL.tilesys.identify_tiles_overlapping_xybbox([8.9047, 46.4158, 17.2373, 49.1299])
+        tiles2 = latlon_grid_fine.GL.tilesys.identify_tiles_overlapping_lonlatbbox([8.9047, 46.4158, 17.2373, 49.1299])
 
         assert sorted(tiles1) == sorted(tiles1_should)
-        #assert sorted(tiles2) == sorted(tiles2_should)
+        assert sorted(tiles2) == sorted(tiles2_should)
 
     def test_get_covering_tiles(self):
         """
@@ -222,8 +220,6 @@ class TestLatLonGrid(unittest.TestCase):
 
         assert sorted(coarse_tiles_shortform) == ['E174N084T6', 'E180N084T6']
         assert sorted(coarse_tiles_longform) == ['GL600U_E174N084T6', 'GL600U_E180N084T6']
-
-
 
 if __name__ == '__main__':
     unittest.main()
