@@ -180,7 +180,10 @@ class LatLonGrid(TiledProjectionSystem):
             raise ValueError('Resolution is badly defined!')
 
         sampling = float(sampling_str[:-1])*scale_factor
-        return sampling
+        # float representation leads to rounding issue -> always the closest static sampling is used
+        sampling_idx = np.argmin(np.abs(sampling - np.array(LatLonGrid._static_sampling)))
+
+        return LatLonGrid._static_sampling[sampling_idx]
 
     def define_subgrids(self):
         """
