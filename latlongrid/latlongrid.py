@@ -664,6 +664,42 @@ class LatLonTilingSystem(TilingSystem):
 
         return subgrid_id, sampling, tile_size_d, ll_lon, ll_lat, tilecode
 
+    @staticmethod
+    def reset_lonlat(lon, lat):
+        lon_res = lon
+        lat_res = lat
+        if lon < -180:
+            mod_180 = lon % -180
+            mod_360 = lon % -360
+            if mod_180 != mod_360:
+                lon_res = 180 + mod_180
+            else:
+                lon_res = mod_180
+        elif lon > 360:
+            mod_180 = lon % 180
+            mod_360 = lon % 360
+            if mod_180 != mod_360:
+                lon_res = -180 + mod_180
+            else:
+                lon_res = mod_180
+
+        if lat < -90:
+            mod_90 = lat % -90
+            mod_180 = lat % -180
+            if mod_90 != mod_180:
+                lat_res = 90 + mod_90
+            else:
+                lat_res = mod_90
+        elif lat > 360:
+            mod_90 = lat % 90
+            mod_180 = lat % 180
+            if mod_90 != mod_180:
+                lat_res = -90 + mod_90
+            else:
+                lat_res = mod_90
+
+        return lon_res, lat_res
+
     def identify_tiles_overlapping_lonlatbbox(self, bbox):
         """Light-weight routine that returns
            the name of tiles overlapping the bounding box.
@@ -697,8 +733,8 @@ class LatLonTilingSystem(TilingSystem):
 
         tilenames = list()
         for i, _ in enumerate(tlon):
-            tilenames.append(
-                self._encode_tilename(tlon[i], tlat[i]))
+            lon, lat = self.reset_lonlat(tlon[i], tlat[i])
+            tilenames.append(self._encode_tilename(lon, lat))
 
         return tilenames
 
